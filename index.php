@@ -4,6 +4,9 @@
 // Kickstart the framework 
 $f3=require('lib/base.php'); 
 
+$db=new \DB\SQL('mysql:host=localhost;port=3306;dbname=test','admin','');
+$res = $db->exec("SELECT * FROM need");
+//var_dump($res);
 
 $f3->set('DEBUG',1); 
 if ((float)PCRE_VERSION<7.9) 
@@ -86,8 +89,38 @@ $f3->route('GET /userref',
 
 $f3->route('GET /',
 	function($f3){
-		echo View::instance()->render('view/index.html');
+		$db=new \DB\SQL('mysql:host=localhost;port=3306;dbname=test','admin','');
+		$res = $db->exec("SELECT * FROM need");
+		$f3->set("needs", tabgen($res));
+		echo View::instance()->render('view/index.php');
 	}
 );
+
+function tabgen($res){
+	$txt='';
+	//var_dump($res);
+	foreach ($res as $key => $value) {
+		$txt.=onetab($value);
+	}
+	return $txt;
+}
+
+function onetab($line){
+	return '
+              <tr>
+                <td class="mdl-data-table__cell--non-numeric">'.$line["opis"].'</td>
+                <td>'.getHelpers($line["id"]).'</td>
+                <td>'.$line["status"].'</td>
+              </tr>';
+}
+
+function getHelpers($id){
+		$db=new \DB\SQL('mysql:host=localhost;port=3306;dbname=test','admin','');
+		$res = $db->exec("SELECT * FROM gift JOIN user ON user.id=user_id where need_id='$id'");
+		foreach ($res as $key => $value) {
+			$txt.=$value["name"].", ";
+		}
+	return $txt;
+}
 
 $f3->run(); 
