@@ -1,0 +1,15 @@
+<?php
+
+  if(isset($_POST["opis"])){
+    $opis=$_POST["opis"];
+    global $db;
+    $res = $db->exec("Update need SET opis='$opis'");
+  
+  }
+
+  ?>
+          <form action="" method="post">
+          Dodaj nową potrzebę
+            <textarea></textarea>
+            <input type="submit"></input>
+          </form>

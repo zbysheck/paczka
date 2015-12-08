@@ -1,3 +1,30 @@
+<?php
+  if(isset($_GET["a"]))
+    if($_GET["a"]='del'){
+      $id=$_GET["id"];
+      global $db;
+      $res = $db->exec("SELECT * FROM gift WHERE id='$id'");
+      $value = ($res[0]["approved"]=="1")?0:1;
+      $res = $db->exec("Update gift SET approved='$value' WHERE id='$id'");
+
+    }
+
+
+  if(isset($_POST["opis"])){
+    var_dump($_POST);
+    $opis=$_POST["opis"];
+    global $db;
+    if(isset($_POST["id"])){
+      $opis=$_POST["opis"];
+      $status=$_POST["status"];
+      $id=$_POST["id"];
+      $res = $db->exec("update need set opis='$opis', status='$status' where id='$id'");
+    }else
+      $res = $db->exec("INSERT INTO need (opis) values ('$opis')");
+  }
+
+?>
+
 <!doctype html>
 <!--
   Material Design Lite
@@ -131,21 +158,138 @@
       <main class="mdl-layout__content mdl-color--grey-100">
 
         <div class="mdl-grid demo-content">
-          <div class="demo-table mdl-color--white mdl-cell  mdl-grid">
+          <div class="demo-table  mdl-cell mdl-cell--8-col mdl-grid">
+          <bold class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">Użytkownicy</bold></span>
           <table class="mdl-data-table mdl-js-data-table  mdl-shadow--8dp mdl-data-table--selectable ">
             <thead>
               <tr>
-                <th class="mdl-data-table__cell--non-numeric">Opis</th>
-                <th>pomagający</th>
-                <th></th>
-                <th>status</th>
+                <th class="mdl-data-table__cell--non-numeric"><span></th>
+                <th>nazwa</th>
+                <th>adres e-mail</th>
+                <th>telefon</th>
+                <th>anonim</th>
+                <th>admin</th>
+                <th>hasz (to tylko dla mnie :) )</th>
               </tr>
             </thead>
             <tbody>
             <?php 
+              function tabgen2($res){
+                $txt='';
+                foreach ($res as $key => $value) {
+                  $txt.=onetab2($value);
+                }
+                return $txt;
+              }
+
+              function onetab2($line){
+                return '
+                            <tr>
+                              <td class="mdl-data-table__cell--non-numeric">'.$line["id"].'</td>
+                              <td>'.$line["name"].'</td>
+                              <td>'.$line["mail"].'</td>
+                              <td>'.$line["phone"].'</td>
+                              <td>'.$line["anonymous"].'</td>
+                              <td>'.$line["admin"].'</td>
+                              <td>'.$line["hash"].'</td>
+                            </tr>';
+              }
+              global $db;
+              $res = $db->exec("SELECT * FROM user");
+              echo tabgen2($res);
+            ?>
+            </tbody>
+          </table></div>
+          <div class="demo-table mdl-cell mdl-cell--8-col mdl-grid">
+          <bold class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">Potrzeby</bold></span>
+          <table class="mdl-data-table mdl-js-data-table  mdl-shadow--8dp mdl-data-table--selectable ">
+            <thead>
+              <tr>
+                <th class="mdl-data-table__cell--non-numeric">potrzeba</th>
+                <th>status</th>
+                <th>Aktualizuj</th>
+              </tr>
+            </thead>
+            <tbody>
+            <?php 
+              function tabgen4($res){
+                //var_dump($res);
+                $txt='';
+                foreach ($res as $key => $value) {
+                  $txt.=onetab4($value);
+                }
+                return $txt;
+              }
+
+              function onetab4($line){
+                $label="Aktualizuj";
+                $button = '
+        <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect" onclick="location.href=\'editgifts/?a=del&id='.$line["id"].'&hash='.$_GET["hash"].'\';">
+          '.$label.'
+        </button> ';
+                return '
+                            <tr>
+                              <td class="mdl-data-table__cell--non-numeric"><form action="" method="post">
+            <textarea name="opis">'.$line["opis"].'</textarea></td>
+                              <td><textarea name="status" >'.$line["status"].'</textarea></td>
+                              <td>
+            <input type="submit" name="id" value="'.$line["id"].'"></input></form></td>
+                            </tr>';
+              }
               global $db;
               $res = $db->exec("SELECT * FROM need");
-              echo tabgen($res);
+              echo tabgen4($res);
+            ?>
+            </tbody>
+          </table></div>
+          <form action="editgifts?hash=<?php echo $_GET["hash"]; ?>" method="post">
+          Dodaj nową potrzebę
+            <textarea name="opis"></textarea>
+            <input type="submit"></input>
+          </form>
+          <div class="demo-table mdl-cell mdl-cell--8-col mdl-grid">
+          <bold class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">datki</bold></span>
+          <table class="mdl-data-table mdl-js-data-table  mdl-shadow--8dp mdl-data-table--selectable ">
+            <thead>
+              <tr>
+                <th class="mdl-data-table__cell--non-numeric">potrzeba</th>
+                <th>osoba</th>
+                <th>telefon</th>
+                <th>mail</th>
+                <th>uwagi</th>
+                <th>akceptacja</th>
+              </tr>
+            </thead>
+            <tbody>
+            <?php 
+              function tabgen3($res){
+                //var_dump($res);
+                $txt='';
+                foreach ($res as $key => $value) {
+                  $txt.=onetab3($value);
+                }
+                return $txt;
+              }
+
+              function onetab3($line){
+                $label=$line["approved"]=="1"?"odwołaj":"akceptuj";
+                $button = '
+        <button class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect" onclick="location.href=\'editgifts/?a=del&id='.$line["id"].'&hash='.$_GET["hash"].'\';">
+          '.$label.'
+        </button> ';
+                return '
+                            <tr>
+                              <td class="mdl-data-table__cell--non-numeric">'.$line["opis"].'</td>
+                              <td>'.$line["name"].'</td>
+                              <td>'.$line["phone"].'</td>
+                              <td>'.$line["mail"].'</td>
+                              <td>'.$line["uwagi"].'</td>
+                              <td>'.$button.'</td>
+                            </tr>';
+              }
+              global $db;
+              $res = $db->exec("SELECT opis, name, phone, mail, uwagi, approved, gift.id as id FROM gift JOIN user on gift.user_id=user.id JOIN need on need.id=gift.need_id");
+              echo tabgen3($res);
             ?>
             </tbody>
           </table></div>
